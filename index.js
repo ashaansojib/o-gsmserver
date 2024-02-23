@@ -76,6 +76,12 @@ async function run() {
       const filter = await toolAndDriver.findOne(data);
       res.send(filter);
     });
+    app.delete("/remove-tool/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = { _id: new ObjectId(id) };
+      const filter = await toolAndDriver.deleteOne(data);
+      res.send(filter);
+    });
     app.post("/add-tool", async (req, res) => {
       const data = req.body;
       const result = await toolAndDriver.insertOne(data);
