@@ -24,6 +24,7 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+    const toolAndDriver = client.db("o-gsm-service").collection("tool-driver");
     const blogPosts = client.db("o-gsm-service").collection("blogs");
     const fileBD = client.db("o-gsm-service").collection("all-files");
     const serviceBD = client.db("o-gsm-service").collection("online-service");
@@ -42,7 +43,9 @@ async function run() {
     });
     // all file section and queries
     app.get("/all-files", async (req, res) => {
-      const files = await fileBD.find().toArray();
+      const files = await fileBD
+        .find({ category: { $regex: "flashfile", $options: "i" } })
+        .toArray();
       res.send(files);
     });
     app.post("/add-file", async (req, res) => {
@@ -64,8 +67,51 @@ async function run() {
     });
     // all tools get in there
     app.get("/all-tools", async (req, res) => {
-      const result = await fileBD.find({ category: {$in: ["driver", "tools"]} }).toArray();
+      const filter = await toolAndDriver.find().toArray();
+      res.send(filter);
+    });
+    app.get("/single-tool/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = { _id: new ObjectId(id) };
+      const filter = await toolAndDriver.findOne(data);
+      res.send(filter);
+    });
+    app.post("/add-tool", async (req, res) => {
+      const data = req.body;
+      const result = await toolAndDriver.insertOne(data);
       res.send(result);
+    });
+    // todo load all data, need to get specific data
+    app.get("/tool-category/:brand", async (req, res) => {
+      const brand = req.params.brand;
+      const allBrand = { brand: { $regex: brand, $options: "i" } };
+      const result = await toolAndDriver.find(allBrand).toArray();
+      res.send(result);
+    });
+    app.get("/unique-brands", async (req, res) => {
+      try {
+        const uniqueBrands = await toolAndDriver
+          .aggregate([
+            {
+              $group: {
+                _id: "$brand",
+                documentId: { $first: "$_id" },
+              },
+            },
+            {
+              $project: {
+                _id: "$documentId",
+                brand: "$_id",
+              },
+            },
+          ])
+          .toArray();
+
+        res.send(uniqueBrands);
+      } catch (error) {
+        console.error("Error fetching unique brands:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
     // services add area
     app.get("/o-services", async (req, res) => {
