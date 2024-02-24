@@ -43,9 +43,7 @@ async function run() {
     });
     // all file section and queries
     app.get("/all-files", async (req, res) => {
-      const files = await fileBD
-        .find({ category: { $regex: "flashfile", $options: "i" } })
-        .toArray();
+      const files = await fileBD.find().toArray();
       res.send(files);
     });
     app.post("/add-file", async (req, res) => {
@@ -55,7 +53,7 @@ async function run() {
     });
     app.get("/file-brand/:brand", async (req, res) => {
       const query = req.params.brand;
-      const filter = { brand: query };
+      const filter = { brand: {$regex: query, $options: 'i'} };
       const files = await fileBD.find(filter).toArray();
       res.send(files);
     });
@@ -64,6 +62,37 @@ async function run() {
       const filter = { _id: new ObjectId(id) };
       const remove = await fileBD.deleteOne(filter);
       res.send(remove);
+    });
+    app.get("/single-file/:id", async (req, res) => {
+      const id = req.params.id;
+      const data = { _id: new ObjectId(id) };
+      const filter = await fileBD.findOne(data);
+      res.send(filter);
+    });
+    app.get("/unique-posts", async (req, res) => {
+      try {
+        const uniqueBrands = await fileBD
+          .aggregate([
+            {
+              $group: {
+                _id: "$brand",
+                documentId: { $first: "$_id" },
+              },
+            },
+            {
+              $project: {
+                _id: "$documentId",
+                brand: "$_id",
+              },
+            },
+          ])
+          .toArray();
+
+        res.send(uniqueBrands);
+      } catch (error) {
+        console.error("Error fetching unique brands:", error);
+        res.status(500).send("Internal Server Error");
+      }
     });
     // all tools get in there
     app.get("/all-tools", async (req, res) => {
