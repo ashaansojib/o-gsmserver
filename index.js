@@ -8,8 +8,7 @@ const port = process.env.PORT || 9988;
 app.use(cors());
 app.use(express.json());
 
-const uri =
-  "mongodb+srv://default_ashaansojib:9080Sojib@cluster0.ugrpd0k.mongodb.net/?retryWrites=true&w=majority";
+const uri = "mongodb+srv://default_ashaansojib:9080Sojib@cluster0.ugrpd0k.mongodb.net/?retryWrites=true&w=majority";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -31,7 +30,7 @@ async function run() {
     const pages = client.db("o-gsm-service").collection("pages");
     const agents = client.db("o-gsm-service").collection("agents");
 
-    // all blogs posts api here
+    // all blogs posts api here--------------------------------->
     app.get("/blogs", async (req, res) => {
       const blogs = await blogPosts.find().toArray();
       res.send(blogs);
@@ -41,7 +40,10 @@ async function run() {
       const posts = await blogPosts.insertOne(blogs);
       res.send(posts);
     });
-    // all file section and queries
+
+
+
+    // ---------------------all file section and queries--------------------------
     app.get("/all-files", async (req, res) => {
       const files = await fileBD.find().toArray();
       res.send(files);
@@ -53,7 +55,7 @@ async function run() {
     });
     app.get("/file-brand/:brand", async (req, res) => {
       const query = req.params.brand;
-      const filter = { brand: {$regex: query, $options: 'i'} };
+      const filter = { brand: { $regex: query, $options: 'i' } };
       const files = await fileBD.find(filter).toArray();
       res.send(files);
     });
@@ -94,7 +96,9 @@ async function run() {
         res.status(500).send("Internal Server Error");
       }
     });
-    // all tools get in there
+
+
+    // -------------------all tools get in there--------------------
     app.get("/all-tools", async (req, res) => {
       const filter = await toolAndDriver.find().toArray();
       res.send(filter);
@@ -148,7 +152,8 @@ async function run() {
         res.status(500).send("Internal Server Error");
       }
     });
-    // services add area
+
+    // ------------------services add area----------------------------
     app.get("/o-services", async (req, res) => {
       const allPost = await serviceBD.find().toArray();
       res.send(allPost);
@@ -170,6 +175,8 @@ async function run() {
       const removed = await serviceBD.deleteOne(query);
       res.send(removed);
     });
+
+    // pages area-----------------------------
     app.get("/pages", async (req, res) => {
       const data = req.body;
       const page = await pages.insertOne(data);
@@ -181,7 +188,9 @@ async function run() {
       const removed = await pages.deleteOne(query);
       res.send(removed);
     });
-    // agents area apis
+
+
+    // ------------------------agents area apis------------------------
     app.get("/agents", async (req, res) => {
       const agent = await agents.find().toArray();
       res.send(agent);
